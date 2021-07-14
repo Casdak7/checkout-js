@@ -17,6 +17,8 @@ import { getUniquePaymentMethodId, PaymentMethodId, PaymentMethodProviderType } 
 import PaymentContext from './PaymentContext';
 import PaymentForm, { PaymentFormValues } from './PaymentForm';
 
+import CustomPaymentMethodService from './customPaymentMethod/customPaymentMethodService';
+
 export interface PaymentProps {
     isEmbedded?: boolean;
     isUsingMultiShipping?: boolean;
@@ -46,6 +48,7 @@ interface WithCheckoutPaymentProps {
     termsConditionsText?: string;
     termsConditionsUrl?: string;
     usableStoreCredit: number;
+    storeProfile: any;
     applyStoreCredit(useStoreCredit: boolean): Promise<CheckoutSelectors>;
     clearError(error: Error): void;
     finalizeOrderIfNeeded(): Promise<CheckoutSelectors>;
@@ -92,10 +95,12 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
             onFinalizeError = noop,
             onReady = noop,
             onUnhandledError = noop,
+            storeProfile,
         } = this.props;
 
         try {
             await loadPaymentMethods();
+            var customPaymentMethods = CustomPaymentMethodService.fetchCustomPaymentMethods(storeProfile);
         } catch (error) {
             onUnhandledError(error);
         }
@@ -380,6 +385,10 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
             getUniquePaymentMethodId(selectedMethod.id, selectedMethod.gateway)
         ];
 
+        console.log("my log:", customSubmit);
+        console.log("my log:", values);
+        console.log("my log:", mapToOrderRequestBody(values, isPaymentDataRequired()));
+
         if (customSubmit) {
             return customSubmit(values);
         }
@@ -556,6 +565,7 @@ export function mapToPaymentProps({
             undefined,
         usableStoreCredit: checkout.grandTotal > 0 ?
             Math.min(checkout.grandTotal, customer.storeCredit || 0) : 0,
+        storeProfile: config.storeProfile,
     };
 }
 
