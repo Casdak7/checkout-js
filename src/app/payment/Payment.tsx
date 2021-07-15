@@ -105,8 +105,6 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
             .then((result: any ) => {
                 console.log("result in payment: ", result);
             });
-
-            console.log("In Payment:", customPaymentMethodService.response);
         } catch (error) {
             onUnhandledError(error);
         }
