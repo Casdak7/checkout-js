@@ -13,12 +13,12 @@ export interface PaymentMethodListProps {
     isEmbedded?: boolean;
     isInitializingPayment?: boolean;
     isUsingMultiShipping?: boolean;
-    methods: PaymentMethod[];
+    methods: PaymentMethod[] | any;
     onSelect?(method: PaymentMethod): void;
     onUnhandledError?(error: Error): void;
 }
 
-function getPaymentMethodFromListValue(methods: PaymentMethod[], value: string): PaymentMethod {
+function getPaymentMethodFromListValue(methods: PaymentMethod[] | any, value: string): PaymentMethod | any {
     const { gatewayId: gateway, methodId: id } = parseUniquePaymentMethodId(value);
     const method = gateway ? find(methods, { gateway, id }) : find(methods, { id });
 
@@ -54,8 +54,8 @@ const PaymentMethodList: FunctionComponent<
         name="paymentProviderRadio"
         onSelect={ handleSelect }
     >
-        { methods.map(method => {
-            const value = getUniquePaymentMethodId(method.id, method.gateway);
+        { methods.map((method: any) => {
+            const value = getUniquePaymentMethodId(method.id, typeof method.customId === 'undefined' ? method.gateway : method.customId);
 
             return (
                 <PaymentMethodListItem
@@ -76,7 +76,7 @@ interface PaymentMethodListItemProps {
     isDisabled?: boolean;
     isEmbedded?: boolean;
     isUsingMultiShipping?: boolean;
-    method: PaymentMethod;
+    method: PaymentMethod | any;
     value: string;
     onUnhandledError?(error: Error): void;
 }

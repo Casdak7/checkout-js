@@ -65,6 +65,7 @@ interface PaymentState {
     shouldDisableSubmit: { [key: string]: boolean };
     shouldHidePaymentSubmitButton: { [key: string]: boolean };
     submitFunctions: { [key: string]: ((values: PaymentFormValues) => void) | null };
+    customPaymentMethods: any,
     validationSchemas: { [key: string]: ObjectSchema<Partial<PaymentFormValues>> | null };
 }
 
@@ -76,6 +77,7 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
         shouldHidePaymentSubmitButton: {},
         validationSchemas: {},
         submitFunctions: {},
+        customPaymentMethods: {},
     };
 
     private getContextValue = memoizeOne(() => {
@@ -104,6 +106,7 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
             await customPaymentMethodService.fetchCustomPaymentMethods(storeProfile)
             .then((result: any ) => {
                 console.log("result in payment: ", result);
+                this.setState({customPaymentMethods: result});
             });
         } catch (error) {
             onUnhandledError(error);
@@ -154,7 +157,15 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
             shouldDisableSubmit,
             validationSchemas,
             shouldHidePaymentSubmitButton,
+            customPaymentMethods
         } = this.state;
+
+        const allMethods = methods.concat(customPaymentMethods);
+
+        console.log('in render:', customPaymentMethods, !isEmpty(customPaymentMethods));
+        console.log('methods:', methods);
+        console.log('allMethods:', allMethods);
+
 
         const uniqueSelectedMethodId = (
             selectedMethod &&
@@ -167,14 +178,14 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
                     isLoading={ !isReady }
                     unmountContentWhenLoading
                 >
-                    { !isEmpty(methods) && defaultMethod && <PaymentForm
+                    { !isEmpty(methods) && defaultMethod && !isEmpty(customPaymentMethods) && <PaymentForm
                         { ...rest }
                         defaultGatewayId={ defaultMethod.gateway }
                         defaultMethodId={ defaultMethod.id }
                         didExceedSpamLimit={ didExceedSpamLimit }
                         isInitializingPayment={ isInitializingPayment }
                         isUsingMultiShipping={ isUsingMultiShipping }
-                        methods={ methods }
+                        methods={ allMethods }
                         onMethodSelect={ this.setSelectedMethod }
                         onStoreCreditChange={ this.handleStoreCreditChange }
                         onSubmit={ this.handleSubmit }

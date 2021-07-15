@@ -29,7 +29,7 @@ export interface PaymentFormProps {
     isTermsConditionsRequired?: boolean;
     isUsingMultiShipping?: boolean;
     isStoreCreditApplied: boolean;
-    methods: PaymentMethod[];
+    methods: PaymentMethod[] | any;
     selectedMethod?: PaymentMethod;
     shouldShowStoreCredit?: boolean;
     shouldDisableSubmit?: boolean;
@@ -172,7 +172,7 @@ interface PaymentMethodListFieldsetProps {
     isEmbedded?: boolean;
     isInitializingPayment?: boolean;
     isUsingMultiShipping?: boolean;
-    methods: PaymentMethod[];
+    methods: PaymentMethod[] | any;
     values: PaymentFormValues;
     isPaymentDataRequired(): boolean;
     onMethodSelect?(method: PaymentMethod): void;
@@ -198,7 +198,7 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
         [values.terms]
     );
 
-    const handlePaymentMethodSelect = useCallback((method: PaymentMethod) => {
+    const handlePaymentMethodSelect = useCallback((method: PaymentMethod | any) => {
         resetForm({
             ...commonValues,
             ccCustomerCode: '',
@@ -210,7 +210,7 @@ const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProp
             ccName: '',
             ccNumber: '',
             instrumentId: '',
-            paymentProviderRadio: getUniquePaymentMethodId(method.id, method.gateway),
+            paymentProviderRadio: getUniquePaymentMethodId(method.id, typeof method.customId === 'undefined' ? method.gateway : method.customId),
             shouldSaveInstrument: false,
         });
 
