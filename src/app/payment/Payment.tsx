@@ -400,6 +400,12 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
             getUniquePaymentMethodId(selectedMethod.id, selectedMethod.gateway)
         ];
 
+        // Parse to remove customPaymentMethod gateway that comes from the App and reset it
+        console.log("my log:", values.paymentProviderRadio.split('-'));
+        if(values.paymentProviderRadio.split('-').length > 1 && values.paymentProviderRadio.split('-')[1] === 'bankdeposit'){
+            values.paymentProviderRadio = 'bankdeposit';
+        }
+
         console.log("my log:", customSubmit);
         console.log("my log:", values);
         console.log("my log:", mapToOrderRequestBody(values, isPaymentDataRequired()));

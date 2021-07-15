@@ -26,7 +26,7 @@ export default class AppCustomPaymentMethod extends Component<AppCustomPaymentMe
             await initializePayment({
                 gatewayId: parsedGateway,
                 methodId: method.id,
-            });
+            }).then(() => {console.log('Custom State: ', this.state)});
         } catch (error) {
             onUnhandledError(error);
         }
