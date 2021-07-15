@@ -424,8 +424,10 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
         }
     };
 
-    private setSelectedMethod: (method?: PaymentMethod) => void = method => {
+    private setSelectedMethod: (method?: PaymentMethod | any) => void = method => {
         const { selectedMethod } = this.state;
+
+        console.log("In setSelectedMethod: ", method, selectedMethod);
 
         if (selectedMethod === method) {
             return;

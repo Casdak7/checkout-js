@@ -40,7 +40,7 @@ export interface PaymentFormProps {
     usableStoreCredit?: number;
     validationSchema?: ObjectSchema<Partial<PaymentFormValues>>;
     isPaymentDataRequired(): boolean;
-    onMethodSelect?(method: PaymentMethod): void;
+    onMethodSelect?(method: PaymentMethod | any): void;
     onStoreCreditChange?(useStoreCredit?: boolean): void;
     onSubmit?(values: PaymentFormValues): void;
     onUnhandledError?(error: Error): void;
@@ -175,9 +175,9 @@ interface PaymentMethodListFieldsetProps {
     methods: PaymentMethod[] | any;
     values: PaymentFormValues;
     isPaymentDataRequired(): boolean;
-    onMethodSelect?(method: PaymentMethod): void;
+    onMethodSelect?(method: PaymentMethod | any): void;
     onUnhandledError?(error: Error): void;
-    resetForm(nextValues?: PaymentFormValues): void;
+    resetForm(nextValues?: PaymentFormValues | any): void;
 }
 
 const PaymentMethodListFieldset: FunctionComponent<PaymentMethodListFieldsetProps> = ({

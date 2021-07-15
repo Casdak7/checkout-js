@@ -22,6 +22,12 @@ function getPaymentMethodFromListValue(methods: PaymentMethod[] | any, value: st
     const { gatewayId: gateway, methodId: id } = parseUniquePaymentMethodId(value);
     const method = gateway ? find(methods, { gateway, id }) : find(methods, { id });
 
+    console.log("in getPaymentMethodFromListValue: ", value)
+    console.log("in getPaymentMethodFromListValue: ", gateway)
+    console.log("in getPaymentMethodFromListValue: ", id)
+    console.log("in getPaymentMethodFromListValue: ", methods)
+    console.log("in getPaymentMethodFromListValue: ", method)
+
     if (!method) {
         throw new Error(`Unable to find payment method with id: ${id}`);
     }

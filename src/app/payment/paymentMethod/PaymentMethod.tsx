@@ -37,8 +37,9 @@ import SquarePaymentMethod from './SquarePaymentMethod';
 import StripePaymentMethod from './StripePaymentMethod';
 import VisaCheckoutPaymentMethod from './VisaCheckoutPaymentMethod';
 
+import AppCustomPaymentMethod from './AppCustomPaymentMethod';
 export interface PaymentMethodProps {
-    method: PaymentMethod;
+    method: PaymentMethod | any;
     isEmbedded?: boolean;
     isUsingMultiShipping?: boolean;
     onUnhandledError?(error: Error): void;
@@ -206,7 +207,16 @@ const PaymentMethodComponent: FunctionComponent<PaymentMethodProps & WithCheckou
         return <HostedPaymentMethod { ...props } />;
     }
 
+    console.log('made it this far', method.type );
+
+    //BC_APP TODO: Create a .tsx component for handling the app's custom payments
+    if (typeof method.customId !== 'undefined') {
+        console.log('In custom payment');
+        return <AppCustomPaymentMethod { ...props } />;
+    }
+
     if (method.type === PaymentMethodProviderType.Offline) {
+        console.log('made it this far too');
         return <OfflinePaymentMethod { ...props } />;
     }
 

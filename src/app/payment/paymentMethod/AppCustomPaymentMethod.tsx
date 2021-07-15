@@ -2,14 +2,16 @@ import { CheckoutSelectors, PaymentInitializeOptions, PaymentMethod, PaymentRequ
 import { noop } from 'lodash';
 import { Component, ReactNode } from 'react';
 
-export interface OfflinePaymentMethodProps {
+//import CustomPaymentMethodService from '../customPaymentMethod/customPaymentMethodService';
+
+export interface AppCustomPaymentMethodProps {
     method: PaymentMethod | any;
     deinitializePayment(options: PaymentRequestOptions): Promise<CheckoutSelectors>;
     initializePayment(options: PaymentInitializeOptions): Promise<CheckoutSelectors>;
     onUnhandledError?(error: Error): void;
 }
 
-export default class OfflinePaymentMethod extends Component<OfflinePaymentMethodProps> {
+export default class AppCustomPaymentMethod extends Component<AppCustomPaymentMethodProps> {
     async componentDidMount(): Promise<void> {
         const {
             initializePayment,
@@ -37,9 +39,12 @@ export default class OfflinePaymentMethod extends Component<OfflinePaymentMethod
             onUnhandledError = noop,
         } = this.props;
 
+        // Parse to remove customPaymentMethod gateway that comes from the App and reset it
+        var parsedGateway = typeof method.customId === 'undefined' ? method.gateway : null;
+
         try {
             await deinitializePayment({
-                gatewayId: method.gateway,
+                gatewayId: parsedGateway,
                 methodId: method.id,
             });
         } catch (error) {
