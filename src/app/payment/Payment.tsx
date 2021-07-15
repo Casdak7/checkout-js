@@ -160,7 +160,16 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
             customPaymentMethods
         } = this.state;
 
-        const allMethods = methods.concat(customPaymentMethods);
+        // BC_APP: This has to be done to remove the real bank deposit method that has to be active for the submitOrder to work
+        // Another method would be ignore submitOrder completely and do this through the API, but it will cause more work. If possible to handle payments better, to that!
+        const allMethods = methods.concat(customPaymentMethods).filter((value) => {
+            if(value.id === 'bankdeposit'){
+                //BC_APP TODO: Here we should have a verification if the real bankdeposit is allowed as well and not just a front. There should be a place in the app to configure this.
+                return value.gateway !== null;
+            }
+
+            return true;
+        });
 
         console.log('in render:', customPaymentMethods, !isEmpty(customPaymentMethods));
         console.log('methods:', methods);
@@ -511,7 +520,9 @@ export function mapToPaymentProps({
     const customer = getCustomer();
     const consignments = getConsignments();
     const { isComplete = false } = getOrder() || {};
-    const methods = getPaymentMethods() || EMPTY_ARRAY;
+
+    //BC_APP TODO: Here we should have a verification if the real bankdeposit is allowed as well and not just a front. There should be a place in the app to configure this.
+    const methods = getPaymentMethods()?.filter((value) => value.id !== 'bankdeposit') || EMPTY_ARRAY;
 
     if (!checkout || !config || !customer || isComplete) {
         return null;
