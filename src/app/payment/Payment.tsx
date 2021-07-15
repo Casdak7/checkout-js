@@ -65,6 +65,7 @@ interface PaymentState {
     shouldDisableSubmit: { [key: string]: boolean };
     shouldHidePaymentSubmitButton: { [key: string]: boolean };
     submitFunctions: { [key: string]: ((values: PaymentFormValues) => void) | null };
+    customPaymentMethods: any;
     validationSchemas: { [key: string]: ObjectSchema<Partial<PaymentFormValues>> | null };
 }
 
@@ -76,6 +77,7 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
         shouldHidePaymentSubmitButton: {},
         validationSchemas: {},
         submitFunctions: {},
+        customPaymentMethods: [],
     };
 
     private getContextValue = memoizeOne(() => {
@@ -101,6 +103,7 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
         try {
             await loadPaymentMethods();
             var customPaymentMethods = CustomPaymentMethodService.fetchCustomPaymentMethods(storeProfile);
+            this.setState({customPaymentMethods: customPaymentMethods});
         } catch (error) {
             onUnhandledError(error);
         }
@@ -150,6 +153,7 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
             shouldDisableSubmit,
             validationSchemas,
             shouldHidePaymentSubmitButton,
+            customPaymentMethods,
         } = this.state;
 
         const uniqueSelectedMethodId = (
@@ -157,20 +161,29 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
             getUniquePaymentMethodId(selectedMethod.id, selectedMethod.gateway)
         );
 
+        console.log("methods", methods);
+        console.log("customMethods", customPaymentMethods);
+        console.log("defaultMethod", defaultMethod);
+        console.log("expression to render", !isEmpty(methods) && defaultMethod && typeof customPaymentMethods.length === 'number');
+        console.log("count attempt", customPaymentMethods.length);
+        console.log("count attempt expression", typeof customPaymentMethods.length === 'number');
+        console.log("typeof attempt", typeof customPaymentMethods);
+        console.log("allMethods", methods.concat(customPaymentMethods));
+
         return (
             <PaymentContext.Provider value={ this.getContextValue() }>
                 <LoadingOverlay
                     isLoading={ !isReady }
                     unmountContentWhenLoading
                 >
-                    { !isEmpty(methods) && defaultMethod && <PaymentForm
+                    { !isEmpty(methods) && defaultMethod && typeof customPaymentMethods.length === 'number' && <PaymentForm
                         { ...rest }
                         defaultGatewayId={ defaultMethod.gateway }
                         defaultMethodId={ defaultMethod.id }
                         didExceedSpamLimit={ didExceedSpamLimit }
                         isInitializingPayment={ isInitializingPayment }
                         isUsingMultiShipping={ isUsingMultiShipping }
-                        methods={ methods }
+                        methods={ methods.concat(customPaymentMethods) }
                         onMethodSelect={ this.setSelectedMethod }
                         onStoreCreditChange={ this.handleStoreCreditChange }
                         onSubmit={ this.handleSubmit }
