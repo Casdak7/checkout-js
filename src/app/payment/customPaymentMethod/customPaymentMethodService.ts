@@ -4,21 +4,36 @@
  */
 export default class CustomPaymentMethodService {
 
+    payment: object;
+    data: object;
     public response: object;
 
-    // /**
-    //  *
-    //  * @param {object} payment The payment selected on checkout
-    //  * @param {object} data The bigcommerce CheckoutService data
-    //  * @param {object} response The response from create payment
-    //  */
-    // constructor(payment, data, response = '') {
-    //     this.payment = payment;
-    //     this.data = data;
-    //     this.response = response;
-    // }
+    /**
+     *
+     * @param {object} payment The payment selected on checkout
+     * @param {object} data The bigcommerce CheckoutService data
+     * @param {object} response The response from create payment
+     */
+    constructor(payment: object = {}, data: object = {}, response: object = {}) {
+        this.payment = payment;
+        this.data = data;
+        this.response = response;
+    }
 
-    public fetchCustomPaymentMethods(storeProfile: any): any;
+    public fetchCustomPaymentMethods(storeProfile: any){
+        return fetch("https://bc-custom-payment.herokuapp.com/admin/payment-methods/get-all/" + storeProfile.storeHash)
+        .then(res => res.json())
+        // .then(
+        //     (result) => {
+        //         console.log(result);
+        //         this.response = result;
+        //     },
+        //     // Deal with error here so catch doesn't break component
+        //     (error) => {
+        //         console.log(error);
+        //     }
+        // )
+    }
 
     // handlePayment(){
     //     console.log(

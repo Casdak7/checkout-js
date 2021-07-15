@@ -100,7 +100,13 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
 
         try {
             await loadPaymentMethods();
-            var customPaymentMethods = CustomPaymentMethodService.fetchCustomPaymentMethods(storeProfile);
+            var customPaymentMethodService = new CustomPaymentMethodService();
+            await customPaymentMethodService.fetchCustomPaymentMethods(storeProfile)
+            .then((result: any ) => {
+                console.log("result in payment: ", result);
+            });
+
+            console.log("In Payment:", customPaymentMethodService.response);
         } catch (error) {
             onUnhandledError(error);
         }
