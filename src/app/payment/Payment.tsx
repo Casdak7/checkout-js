@@ -411,7 +411,15 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
 
         // Parse to remove customPaymentMethod gateway that comes from the App and reset it
         console.log("my log:", values.paymentProviderRadio.split('-'));
+
+        var isCustomPaymentMethod = false;
+        var customPaymentMethodId = 0;
+
+        //If it is a bankdeposit with a gateway id, it is actually a custom payment method from the app
         if(values.paymentProviderRadio.split('-').length > 1 && values.paymentProviderRadio.split('-')[1] === 'bankdeposit'){
+            isCustomPaymentMethod = true;
+            customPaymentMethodId = parseInt(values.paymentProviderRadio.split('-')[0]);
+
             values.paymentProviderRadio = 'bankdeposit';
         }
 
@@ -424,7 +432,24 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
         }
 
         try {
-            await submitOrder(mapToOrderRequestBody(values, isPaymentDataRequired()));
+            //TODO: after submit order, create payment on the app and await response for redirect
+            await submitOrder(mapToOrderRequestBody(values, isPaymentDataRequired()))
+            .then(async (response) => {
+                console.log("After Submit:", response);
+
+                //If it's a custom paymet method, communicate to the app to handle checkout as well
+                if(isCustomPaymentMethod){
+                    var customPaymentMethodService = new CustomPaymentMethodService({customMethodId: customPaymentMethodId}, response.data);
+                    await customPaymentMethodService.handlePayment()
+                    .then((data) => {
+                        console.log('Return create payment: ', data);
+
+                        customPaymentMethodService.response = data;
+                        customPaymentMethodService.handleResponse();
+                    })
+                }
+            });
+
             onSubmit();
         } catch (error) {
             if (error.type === 'payment_method_invalid') {
