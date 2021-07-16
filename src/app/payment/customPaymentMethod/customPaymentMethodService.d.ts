@@ -7,6 +7,8 @@ export default class CustomPaymentMethodService {
     public payment: any;
     public data: any;
     public response: any;
+    public links: any;
+    public checkoutId: string;
 
     // /**
     //  *
@@ -27,7 +29,7 @@ export default class CustomPaymentMethodService {
     // /**
     //  * Send a POST request to the app to create the Payment.
     //  */
-    private createPayment(payment: any, data: any): any;
+    private createPayment(payment: any, links: any, checkoutId: string): any;
 
     // /**
     //  * Method to handle the response received from the ajax call to the

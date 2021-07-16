@@ -7,6 +7,9 @@ export default class CustomPaymentMethodService {
     public payment: any;
     public data: any;
     public response: any;
+    public links: any;
+    public checkoutId: string;
+    public storeHash: string;
 
     /**
      *
@@ -14,10 +17,13 @@ export default class CustomPaymentMethodService {
      * @param {any} data The bigcommerce CheckoutService data
      * @param {any} response The response from create payment
      */
-    constructor(payment: any = {}, data: any = {}, response: any = {}) {
+    constructor(payment: any = {}, data: any = {}, response: any = {}, links: any = {}, checkoutId: string = '', storeHash: string = '') {
         this.payment = payment;
         this.data = data;
         this.response = response;
+        this.links = links;
+        this.checkoutId = checkoutId;
+        this.storeHash = storeHash;
     }
 
     public fetchCustomPaymentMethods(storeProfile: any){
@@ -26,67 +32,31 @@ export default class CustomPaymentMethodService {
     }
 
     public handlePayment(){
-        console.log(
-            "Links:",
-            this.data.getConfig().links.orderConfirmationLink,
-            this.data.getConfig().links.checkoutLink,
-            this.data.getConfig().links.cartLink,
-            this.data.getConfig().links.siteLink,
-        );
 
-        return this.createPayment(this.payment, this.data);
-
-        // return new Promise((resolve, reject) => {
-        //     this.createPayment(this.payment, this.data)
-        //     .then(() => {
-        //         this.handleResponse();
-        //         resolve();
-        //     })
-        //     .catch((err) => {
-        //         reject(err);
-        //     });
-        // });
+        return this.createPayment(this.payment, this.links, this.checkoutId, this.storeHash);
     }
 
     /**
      * Send a POST request to the app to create the Payment.
      */
-    private createPayment(payment: any, data: any){
+    private createPayment(payment: any, links: any, checkoutId: string, storeHash: string){
         // Simple POST request with a JSON body using fetch
         const requestOptions = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                order_id: data.getOrder().orderId,
                 payment_method_config_id: payment.customMethodId,
-                items: data.getOrder().lineItems,
+                checkoutId: checkoutId,
                 links: {
-                    success: data.getConfig().links.orderConfirmationLink,
-                    pending: data.getConfig().links.orderConfirmationLink,
-                    failure: data.getConfig().links.orderConfirmationLink,
+                    success: links.success,
+                    pending: links.pending,
+                    failure: links.failure,
                 }
             })
         };
 
-        return fetch("https://bc-custom-payment.herokuapp.com/admin/payments/" + data.getConfig().storeProfile.storeHash, requestOptions)
+        return fetch("https://bc-custom-payment.herokuapp.com/admin/payments/" + storeHash, requestOptions)
         .then(response => response.json());
-
-        // return new Promise((resolve, reject) => {
-        //     fetch("https://bc-custom-payment.herokuapp.com/admin/payments/" + data.getConfig().storeProfile.storeHash, requestOptions)
-        //         .then(response => response.json())
-        //         .then(data => {
-        //             console.log('Return create payment: ', data);
-
-        //             this.response = data;
-        //             resolve();
-
-        //             // if(typeof data.redirectUrl !== 'undefined'){
-        //             //     window.open(data.redirectUrl, '_blank');
-        //             //     resolve()
-        //             // }
-        //         })
-        //         .catch(err => reject(err))
-        // })
     }
 
     // /**

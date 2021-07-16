@@ -49,6 +49,10 @@ interface WithCheckoutPaymentProps {
     termsConditionsUrl?: string;
     usableStoreCredit: number;
     storeProfile: any;
+    checkoutId: any;
+    orderConfirmationUrl: string,
+    siteUrl: string,
+    checkoutUrl: string,
     applyStoreCredit(useStoreCredit: boolean): Promise<CheckoutSelectors>;
     clearError(error: Error): void;
     finalizeOrderIfNeeded(): Promise<CheckoutSelectors>;
@@ -398,6 +402,11 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
             onSubmit = noop,
             onSubmitError = noop,
             submitOrder,
+            checkoutId,
+            storeProfile,
+            orderConfirmationUrl,
+            siteUrl,
+            checkoutUrl,
         } = this.props;
 
         const {
@@ -408,6 +417,8 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
         const customSubmit = selectedMethod && submitFunctions[
             getUniquePaymentMethodId(selectedMethod.id, selectedMethod.gateway)
         ];
+
+        console.log("The checkoutId in submit: ", checkoutId);
 
         // Parse to remove customPaymentMethod gateway that comes from the App and reset it
         console.log("my log:", values.paymentProviderRadio.split('-'));
@@ -432,23 +443,41 @@ class Payment extends Component<PaymentProps & WithCheckoutPaymentProps & WithLa
         }
 
         try {
-            //TODO: after submit order, create payment on the app and await response for redirect
-            await submitOrder(mapToOrderRequestBody(values, isPaymentDataRequired()))
-            .then(async (response) => {
-                console.log("After Submit:", response);
-
-                //If it's a custom paymet method, communicate to the app to handle checkout as well
-                if(isCustomPaymentMethod){
-                    var customPaymentMethodService = new CustomPaymentMethodService({customMethodId: customPaymentMethodId}, response.data);
-                    await customPaymentMethodService.handlePayment()
-                    .then((data) => {
-                        console.log('Return create payment: ', data);
-
-                        customPaymentMethodService.response = data;
-                        customPaymentMethodService.handleResponse();
-                    })
+            //If it's a custom paymet method, communicate to the app to handle checkout
+            if(isCustomPaymentMethod){
+                const links = {
+                    success: orderConfirmationUrl,
+                    pending: orderConfirmationUrl,
+                    failure: checkoutUrl
                 }
-            });
+
+                var customPaymentMethodService = new CustomPaymentMethodService(
+                    {customMethodId: customPaymentMethodId},
+                    {},
+                    {},
+                    links,
+                    checkoutId,
+                    storeProfile.storeHash
+                );
+
+                await customPaymentMethodService.handlePayment()
+                .then((data) => {
+                    console.log('Return create payment: ', data);
+
+                    customPaymentMethodService.response = data;
+                    customPaymentMethodService.handleResponse();
+                })
+            } else {
+                await submitOrder(mapToOrderRequestBody(values, isPaymentDataRequired()))
+                .then(async (response) => {
+                    console.log("After Submit:", response);
+                    console.log("Billing data:", response.data.getBillingAddress());
+                    console.log("Customer data:", response.data.getCustomer());
+                    console.log("Shipping data:", response.data.getShippingAddress());
+                    console.log("Checkout data:", response.data.getCheckout());
+                    console.log("Order data:", response.data.getOrder());
+                });
+            }
 
             onSubmit();
         } catch (error) {
@@ -564,6 +593,8 @@ export function mapToPaymentProps({
     const isTermsConditionsRequired = isTermsConditionsEnabled;
     const selectedPayment = find(checkout.payments, { providerType: PaymentMethodProviderType.Hosted });
 
+    console.log("The checkout: ", checkout);
+
     const { isStoreCreditApplied } = checkout;
 
     let selectedPaymentMethod;
@@ -624,7 +655,13 @@ export function mapToPaymentProps({
             undefined,
         usableStoreCredit: checkout.grandTotal > 0 ?
             Math.min(checkout.grandTotal, customer.storeCredit || 0) : 0,
+
+        //BC_APP Custom Attributes
         storeProfile: config.storeProfile,
+        checkoutId: checkout.id,
+        orderConfirmationUrl: config.links.orderConfirmationLink,
+        siteUrl: config.links.siteLink,
+        checkoutUrl: config.links.checkoutLink,
     };
 }
 
